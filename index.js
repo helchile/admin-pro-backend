@@ -1,40 +1,31 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
 
+const { dbConnection } = require("./database/config");
 
-const { dbConnection } = require('./database/config')
-
-
-
-
-//Crear el servidor express 
+//Crear el servidor express
 const app = express();
 
 // configurar CORS, es un middleware y se ejecuta cada vez que la app
 // pase por aquí
 app.use(cors());
 
-
-
+//Lectura y parseo de body (leer datos )
+app.use(express.json());
 
 //
 dbConnection();
 
-
 //console.log(process.env);
 
-app.get('/', (req, res) =>{
-    // res.status(400).json({
-    res.json({
-        ok: true,
-        msg: 'hola Mundo'
-    });
-});
+app.use("/api/usuarios", require("./routes/usuarios"));
+app.use("/api/login", require("./routes/auth"));
 
 // user mean_user
 // pass ISnpWqT2dfbEvvmX
 // ISnpWqT2dfbEvvmX
-app.listen( process.env.PORT, () => {
-    console.log('Escuchando en el port: ' + process.env.PORT);
+// mongodb+srv://mean_user:ISnpWqT2dfbEvvmX@cluster0.0kxgn.mongodb.net/hospitaldb
+app.listen(process.env.PORT, () => {
+    console.log("Escuchando en el port: " + process.env.PORT);
 });
