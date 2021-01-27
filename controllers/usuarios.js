@@ -4,14 +4,32 @@ const { generarJWT } = require("../helper/jwt");
 // para encriptar la password
 const bcrypt = require("bcryptjs");
 
-const Usuario = require("../models/usuarios");
+const Usuario = require("../models/usuario");
 
 const getUsuarios = async (req, res = response) => {
-    const usuarios = await Usuario.find({}, "nombre email role google");
+    const desde = Number(req.query.desde) || 0;
+    const rango = Number(req.query.rango) || 5;
+    // console.log('Desde:' + desde);
+    // console.log('Rango:' + rango);
+
+    // const usuarios = await Usuario.find({}, "nombre email role google")
+    //                                 .skip(desde)
+    //                                 .limit(rango);
+    // const total = await Usuario.count();
+
+    const [usuarios, total] = await Promise.all([
+        Usuario
+            .find({}, "nombre email role google img")
+            .skip(desde)
+            .limit(rango),
+        Usuario
+            .countDocuments(),
+    ]);
 
     res.json({
         ok: true,
-        usuarios
+        usuarios,
+        total,
     });
 };
 
@@ -37,18 +55,16 @@ const crearUsuario = async (req, res = response) => {
 
         usuario.password = bcrypt.hashSync(password, salt);
 
-        
-
         //guardar user en DB
         await usuario.save();
 
         //generar WJT
-        const token  = await generarJWT(usuario.id);
+        const token = await generarJWT(usuario.id);
 
         res.json({
             ok: true,
             usuario,
-            token
+            token,
         });
     } catch (error) {
         console.log(error);
@@ -59,7 +75,7 @@ const crearUsuario = async (req, res = response) => {
     }
 };
 
-const actualizarUsuarios = async (req, res = response) => {
+const actualizarUsuario = async (req, res = response) => {
     const uid = req.params.id;
 
     try {
@@ -111,7 +127,7 @@ const actualizarUsuarios = async (req, res = response) => {
 
 const borrarUsuario = async (req, res = response) => {
     const uid = req.params.id;
-    const Usuario = require('../models/usuarios');
+    const Usuario = require("../models/usuarios");
 
     try {
         //const usuarioDB = await Usuario.findById(uid);
@@ -144,6 +160,6 @@ const borrarUsuario = async (req, res = response) => {
 module.exports = {
     getUsuarios,
     crearUsuario,
-    actualizarUsuarios,
+    actualizarUsuario,
     borrarUsuario,
 };
