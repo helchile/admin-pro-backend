@@ -32,7 +32,7 @@ const login = async (req, res = response) => {
         }
 
         //generar WJT
-        const token  = await generarJWT(usuarioDB.id);
+        const token = await generarJWT(usuarioDB.id);
 
         res.json({
             ok: true,
@@ -49,60 +49,62 @@ const login = async (req, res = response) => {
     }
 };
 
-
-
-
-
-
-const googleSignIn = async ( req, res = response) => {
-
+const googleSignIn = async (req, res = response) => {
     const googleToken = req.body.token;
 
-
-    
     try {
-        const {name, email, picture }= await googleVerify( googleToken);
+        const { name, email, picture } = await googleVerify(googleToken);
 
-        const usuarioDB = await Usuario.findOne({email});
+        const usuarioDB = await Usuario.findOne({ email });
         let usuario;
 
         if (!usuarioDB) {
-            usuario= new Usuario({
-            nombre: name,
-            email,
-            password: '@@@',
-            img: picture,
-            google: true,
+            usuario = new Usuario({
+                nombre: name,
+                email,
+                password: "@@@",
+                img: picture,
+                google: true,
             });
-        }else{
+        } else {
             //existe Usuario
             usuario = usuarioDB;
-            usuario.google= true;
+            usuario.google = true;
         }
-
 
         // guardar usuario en DB
         await usuario.save();
         //generar WJT
-        const token  = await generarJWT(usuario.id);
-
+        const token = await generarJWT(usuario.id);
 
         res.json({
             ok: true,
             token,
         });
-        
     } catch (error) {
         res.status(401).json({
             ok: false,
             msg: "Error: Token Google no es correcto",
         });
-        
     }
+};
 
-}
+const renewToken = async (req, res = response) => {
+
+    const uid = req.uid;
+    //generar WJT
+    const token = await generarJWT(uid);
+
+    res.json({
+        ok: true,
+        //uid,
+        token
+    });
+
+};
 
 module.exports = {
     login,
     googleSignIn,
+    renewToken
 };
